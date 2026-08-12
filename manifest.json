@@ -1,7 +1,7 @@
 {
   "name": "Family Board",
   "short_name": "Family Board",
-  "start_url": "./family-calendar.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#EAE3D3",
