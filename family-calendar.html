@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#EAE3D3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Family Board">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<title>Family Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EAE3D3;
+    --paper-2:#F3EEE1;
+    --ink:#262220;
+    --ink-soft:#5B564E;
+    --line:#D8CFB8;
+    --today:#2F6F62;
+    --today-tint:#DCEBE6;
+    --danger:#B5495B;
+    --danger-tint:#F5DEE1;
+    --p1:#6B4E71; --p1-t:#E9E1EA;
+    --p2:#3B6E8F; --p2-t:#DEE7EC;
+    --p3:#C99A2E; --p3-t:#F3E7CD;
+    --p4:#B5495B; --p4-t:#F0DEE1;
+    --p5:#6E8B6B; --p5-t:#E3E9E1;
+    --p6:#7A5A3A; --p6-t:#E7DECE;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px);
+    background-size: 100% 40px;
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 20px 80px;}
+  header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:16px; margin-bottom:28px;
+    border-bottom:2px solid var(--ink); padding-bottom:16px;
+  }
+  h1{
+    font-family:'Fraunces',serif; font-weight:600; font-size:40px;
+    margin:0; letter-spacing:-0.5px;
+  }
+  .subtitle{font-size:13px; color:var(--ink-soft); margin-top:4px;}
+  .nav{display:flex; align-items:center; gap:14px;}
+  .nav button{
+    background:none; border:1.5px solid var(--ink); color:var(--ink);
+    border-radius:6px; width:34px; height:34px; font-size:16px; cursor:pointer;
+  }
+  .nav button:hover{background:var(--ink); color:var(--paper);}
+  .month-label{
+    font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:500;
+    min-width:150px; text-align:center;
+  }
+  .today-btn{
+    font-family:'Inter',sans-serif; font-size:12px; border:1.5px solid var(--ink-soft);
+    background:none; color:var(--ink-soft); border-radius:6px; padding:0 10px; height:34px; cursor:pointer;
+  }
+  .today-btn:hover{border-color:var(--ink); color:var(--ink);}
+
+  .toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:12px; flex-wrap:wrap;}
+  .legend{display:flex; gap:10px; flex-wrap:wrap;}
+  .legend-item{
+    display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-soft);
+    cursor:pointer; padding:3px 8px; border-radius:20px; border:1px solid transparent;
+  }
+  .legend-item.off{opacity:0.35;}
+  .legend-item:hover{border-color:var(--line);}
+  .dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .btn-primary{
+    font-family:'Inter',sans-serif; font-weight:500; font-size:13px;
+    background:var(--ink); color:var(--paper-2); border:none; border-radius:6px;
+    padding:9px 16px; cursor:pointer;
+  }
+  .btn-primary:hover{background:#40382f;}
+  .btn-ghost{
+    font-family:'Inter',sans-serif; font-size:12px; background:none; border:1px solid var(--line);
+    color:var(--ink-soft); border-radius:6px; padding:8px 12px; cursor:pointer;
+  }
+  .btn-ghost:hover{border-color:var(--ink-soft); color:var(--ink);}
+
+  .grid{
+    background:var(--paper-2); border:1.5px solid var(--ink); border-radius:10px; overflow:hidden;
+  }
+  .dow-row{display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1.5px solid var(--ink);}
+  .dow{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;
+    color:var(--ink-soft); text-align:center; padding:8px 0; letter-spacing:1px;
+  }
+  .weeks{display:grid;}
+  .week-row{display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--line);}
+  .week-row:last-child{border-bottom:none;}
+  .day{
+    min-height:104px; border-right:1px solid var(--line); padding:6px; position:relative;
+    cursor:pointer; transition:background .1s;
+  }
+  .day:last-child{border-right:none;}
+  .day:hover{background:rgba(0,0,0,0.025);}
+  .day.other-month{opacity:0.35;}
+  .day.today{background:var(--today-tint);}
+  .day-num{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);
+    display:inline-block; margin-bottom:4px;
+  }
+  .day.today .day-num{
+    background:var(--today); color:#fff; border-radius:50%;
+    width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .chips{display:flex; flex-direction:column; gap:3px;}
+  .chip{
+    font-size:11px; padding:2px 6px 2px 8px; border-radius:4px; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; position:relative;
+  }
+  .chip:before{
+    content:''; position:absolute; left:2px; top:50%; transform:translateY(-50%) rotate(-8deg);
+    width:5px; height:5px; border-radius:50%; background:currentColor; opacity:0.7;
+  }
+  .chip-more{font-size:10px; color:var(--ink-soft); padding-left:8px;}
+
+  .panel{
+    margin-top:22px; background:var(--paper-2); border:1.5px solid var(--ink); border-radius:10px;
+    padding:18px 20px;
+  }
+  .panel h2{
+    font-family:'Fraunces',serif; font-weight:600; font-size:20px; margin:0 0 12px;
+  }
+  .agenda-item{
+    display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--line);
+  }
+  .agenda-item:last-child{border-bottom:none;}
+  .agenda-time{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); min-width:64px; padding-top:2px;
+  }
+  .agenda-main{flex:1;}
+  .agenda-title{font-weight:500; font-size:14px;}
+  .agenda-meta{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .agenda-tag{
+    display:inline-block; font-size:10px; padding:1px 7px; border-radius:20px; margin-right:6px;
+  }
+  .agenda-actions button{
+    background:none; border:none; cursor:pointer; color:var(--ink-soft); font-size:16px; padding:2px 6px;
+  }
+  .agenda-actions button:hover{color:var(--danger);}
+  .empty{color:var(--ink-soft); font-size:13px; padding:8px 0;}
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(38,34,32,0.45); display:none;
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--paper-2); border:1.5px solid var(--ink); border-radius:10px;
+    width:100%; max-width:420px; padding:22px;
+  }
+  .modal h3{font-family:'Fraunces',serif; font-weight:600; font-size:20px; margin:0 0 16px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12px; color:var(--ink-soft); margin-bottom:5px;}
+  .field input, .field select, .field textarea{
+    width:100%; border:1.5px solid var(--line); border-radius:6px; padding:8px 10px;
+    font-family:'Inter',sans-serif; font-size:13px; background:#fff; color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--ink);}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .swatches{display:flex; gap:8px; flex-wrap:wrap;}
+  .swatch{
+    width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent;
+  }
+  .swatch.sel{border-color:var(--ink);}
+  .modal-actions{display:flex; justify-content:space-between; margin-top:18px; align-items:center;}
+  .link-row{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:10px;}
+  .link-row input{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; text-align:center; width:auto; flex:1; max-width:320px;
+  }
+  .setup{max-width:520px; margin:60px auto; text-align:center;}
+  .setup textarea{width:100%; min-height:120px; font-family:'IBM Plex Mono',monospace; font-size:12px;}
+  @media(max-width:640px){
+    h1{font-size:30px;}
+    .day{min-height:70px;}
+    .chip{font-size:9px;}
+    .row2{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+
+  <div id="setupView" class="setup" style="display:none;">
+    <h1 style="font-size:28px;">Family Board setup</h1>
+    <p style="color:var(--ink-soft); font-size:14px;">Paste your Firebase config below, once. It's saved in this browser only.</p>
+    <textarea id="fbConfigInput" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'></textarea>
+    <div style="margin-top:14px;">
+      <button class="btn-primary" onclick="saveFirebaseConfig()">Save and continue</button>
+    </div>
+  </div>
+
+  <div id="mainView" style="display:none;">
+    <header>
+      <div>
+        <h1>Family Board</h1>
+        <div class="subtitle" id="familyCodeLabel"></div>
+      </div>
+      <div class="nav">
+        <button onclick="changeMonth(-1)" aria-label="Previous month">&#8592;</button>
+        <div class="month-label" id="monthLabel"></div>
+        <button onclick="changeMonth(1)" aria-label="Next month">&#8594;</button>
+        <button class="today-btn" onclick="goToday()">Today</button>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <div class="legend" id="legend"></div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-ghost" onclick="openPeopleModal()">Edit family</button>
+        <button class="btn-primary" onclick="openEventModal()">+ Add event</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="dow-row" id="dowRow"></div>
+      <div class="weeks" id="weeksGrid"></div>
+    </div>
+
+    <div class="panel">
+      <h2 id="agendaLabel">Today</h2>
+      <div id="agendaList"></div>
+    </div>
+
+    <div style="text-align:center; margin-top:18px;">
+      <button class="btn-ghost" onclick="showShareLink()">Share this board</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="eventOverlay">
+  <div class="modal">
+    <h3 id="eventModalTitle">Add event</h3>
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="evTitle" placeholder="Dentist appointment">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="evDate">
+      </div>
+      <div class="field">
+        <label>Time</label>
+        <input type="time" id="evTime">
+      </div>
+    </div>
+    <div class="field">
+      <label><input type="checkbox" id="evAllDay" style="width:auto; display:inline; margin-right:6px;" onchange="toggleAllDay()">All day</label>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Category</label>
+        <select id="evCategory">
+          <option value="general">General</option>
+          <option value="appointment">Appointment</option>
+          <option value="school">School</option>
+          <option value="work">Work</option>
+          <option value="bill">Bill / due date</option>
+          <option value="factory">Factory</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Who</label>
+        <select id="evPerson"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes (optional)</label>
+      <textarea id="evNotes" rows="2" placeholder="Anything else to remember"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeEventModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveEvent()">Save event</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="peopleOverlay">
+  <div class="modal">
+    <h3>Family members</h3>
+    <div id="peopleList"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closePeopleModal()">Close</button>
+      <button class="btn-primary" onclick="savePeople()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="shareOverlay">
+  <div class="modal">
+    <h3>Share this board</h3>
+    <p style="font-size:13px; color:var(--ink-soft);">Send this link to family members. Anyone with the link can view and add events — there's no login.</p>
+    <div class="link-row">
+      <input type="text" id="shareLinkInput" readonly>
+      <button class="btn-ghost" onclick="copyShareLink()">Copy</button>
+    </div>
+    <div class="modal-actions" style="justify-content:center; margin-top:16px;">
+      <button class="btn-primary" onclick="closeShareModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const DEFAULT_PEOPLE = [
+  {id:'p1', name:'Person 1', color:'--p1', tint:'--p1-t'},
+  {id:'p2', name:'Person 2', color:'--p2', tint:'--p2-t'},
+  {id:'p3', name:'Person 3', color:'--p3', tint:'--p3-t'},
+  {id:'p4', name:'Person 4', color:'--p4', tint:'--p4-t'}
+];
+const PALETTE = ['--p1','--p2','--p3','--p4','--p5','--p6'];
+const CATEGORY_LABEL = {general:'General', appointment:'Appointment', school:'School', work:'Work', bill:'Bill', factory:'Factory'};
+
+let db, familyCode, people = [], events = [], hiddenPeople = new Set();
+let viewDate = new Date();
+let selectedDate = new Date();
+let editingEventId = null;
+let unsubscribeEvents = null, unsubscribePeople = null;
+
+function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function getFamilyCodeFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get('family');
+}
+
+const DEFAULT_FAMILY_CODE = 'my-family';
+
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCGLh3x46RoE8hvlZ05S6Yv0xf9Pn_Ftw0",
+  authDomain: "calendar-a6601.firebaseapp.com",
+  projectId: "calendar-a6601",
+  storageBucket: "calendar-a6601.firebasestorage.app",
+  messagingSenderId: "880601896819",
+  appId: "1:880601896819:web:2ed81a5f5f6a0e73455706"
+};
+
+function init(){
+  try{
+    if(typeof firebase === 'undefined'){
+      throw new Error('Firebase SDK did not load. Check your internet connection or ad blocker (it may be blocking gstatic.com).');
+    }
+    if(!firebase.apps.length){
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+    db = firebase.firestore();
+  }catch(e){
+    console.error('Firebase init failed:', e);
+    document.getElementById('setupView').style.display = 'block';
+    document.getElementById('fbConfigInput').value = JSON.stringify(FIREBASE_CONFIG, null, 2);
+    const errBox = document.createElement('p');
+    errBox.style.cssText = 'color:var(--danger); font-size:13px; margin-top:10px;';
+    errBox.textContent = 'Error: ' + e.message;
+    document.getElementById('setupView').appendChild(errBox);
+    return;
+  }
+
+  familyCode = getFamilyCodeFromUrl();
+  if(!familyCode){
+    familyCode = localStorage.getItem('family_code') || DEFAULT_FAMILY_CODE;
+    const url = new URL(window.location.href);
+    url.searchParams.set('family', familyCode);
+    window.history.replaceState({}, '', url);
+  }
+  localStorage.setItem('family_code', familyCode);
+
+  document.getElementById('mainView').style.display = 'block';
+  document.getElementById('familyCodeLabel').textContent = familyCode;
+
+  subscribeToData();
+  render();
+}
+
+function saveFirebaseConfig(){
+  const raw = document.getElementById('fbConfigInput').value.trim();
+  try{
+    JSON.parse(raw);
+  }catch(e){
+    alert('That does not look like valid JSON. Paste the config object from your Firebase project settings.');
+    return;
+  }
+  localStorage.setItem('fb_config', raw);
+  window.location.reload();
+}
+
+function subscribeToData(){
+  const peopleRef = db.collection('families').doc(familyCode).collection('meta').doc('people');
+  peopleRef.get().then(doc => {
+    if(!doc.exists){
+      peopleRef.set({list: DEFAULT_PEOPLE.map(p => ({id:p.id, name:p.name, color:p.color}))});
+    }
+  });
+  unsubscribePeople = peopleRef.onSnapshot(doc => {
+    if(doc.exists && doc.data().list){
+      people = doc.data().list;
+    }else{
+      people = DEFAULT_PEOPLE.map(p => ({id:p.id, name:p.name, color:p.color}));
+    }
+    renderLegend();
+    renderPersonSelect();
+    render();
+  });
+
+  const eventsRef = db.collection('families').doc(familyCode).collection('events');
+  unsubscribeEvents = eventsRef.onSnapshot(snap => {
+    events = [];
+    snap.forEach(doc => events.push({id: doc.id, ...doc.data()}));
+    render();
+  });
+}
+
+function personById(id){ return people.find(p => p.id === id); }
+function tintFor(colorVar){
+  const map = {'--p1':'--p1-t','--p2':'--p2-t','--p3':'--p3-t','--p4':'--p4-t','--p5':'--p5-t','--p6':'--p6-t'};
+  return map[colorVar] || '--p1-t';
+}
+
+function renderLegend(){
+  const el = document.getElementById('legend');
+  el.innerHTML = '';
+  people.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'legend-item' + (hiddenPeople.has(p.id) ? ' off' : '');
+    item.innerHTML = `<span class="dot" style="background:${cssVar(p.color)}"></span>${p.name}`;
+    item.onclick = () => {
+      if(hiddenPeople.has(p.id)) hiddenPeople.delete(p.id); else hiddenPeople.add(p.id);
+      renderLegend(); render();
+    };
+    el.appendChild(item);
+  });
+}
+
+function renderPersonSelect(){
+  const sel = document.getElementById('evPerson');
+  sel.innerHTML = people.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+function pad(n){ return n < 10 ? '0'+n : ''+n; }
+function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function sameDay(a,b){ return dateKey(a) === dateKey(b); }
+
+function changeMonth(delta){
+  viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+delta, 1);
+  render();
+}
+function goToday(){
+  viewDate = new Date();
+  selectedDate = new Date();
+  render();
+}
+
+function render(){
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('monthLabel').textContent = monthNames[viewDate.getMonth()] + ' ' + viewDate.getFullYear();
+
+  const dowRow = document.getElementById('dowRow');
+  dowRow.innerHTML = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="dow">${d}</div>`).join('');
+
+  const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+  const startOffset = first.getDay();
+  const gridStart = new Date(first);
+  gridStart.setDate(first.getDate() - startOffset);
+
+  const weeksGrid = document.getElementById('weeksGrid');
+  weeksGrid.innerHTML = '';
+  const today = new Date();
+
+  for(let w=0; w<6; w++){
+    const row = document.createElement('div');
+    row.className = 'week-row';
+    let rowHasCurrentMonth = false;
+    for(let d=0; d<7; d++){
+      const cellDate = new Date(gridStart);
+      cellDate.setDate(gridStart.getDate() + w*7 + d);
+      if(cellDate.getMonth() === viewDate.getMonth()) rowHasCurrentMonth = true;
+
+      const cell = document.createElement('div');
+      cell.className = 'day';
+      if(cellDate.getMonth() !== viewDate.getMonth()) cell.classList.add('other-month');
+      if(sameDay(cellDate, today)) cell.classList.add('today');
+      cell.onclick = () => { selectedDate = cellDate; renderAgenda(); };
+
+      const dayEvents = eventsForDate(cellDate).filter(e => !hiddenPeople.has(e.personId));
+      const chipsHtml = dayEvents.slice(0,3).map(e => {
+        const person = personById(e.personId);
+        const color = person ? cssVar(person.color) : cssVar('--p1');
+        const tint = person ? cssVar(tintFor(person.color)) : cssVar('--p1-t');
+        return `<div class="chip" style="background:${tint}; color:${color};">${escapeHtml(e.title)}</div>`;
+      }).join('');
+      const more = dayEvents.length > 3 ? `<div class="chip-more">+${dayEvents.length-3} more</div>` : '';
+
+      cell.innerHTML = `<span class="day-num">${cellDate.getDate()}</span><div class="chips">${chipsHtml}${more}</div>`;
+      row.appendChild(cell);
+    }
+    weeksGrid.appendChild(row);
+    if(!rowHasCurrentMonth && w >= 4) break;
+  }
+
+  renderAgenda();
+}
+
+function eventsForDate(date){
+  const key = dateKey(date);
+  return events.filter(e => e.date === key).sort((a,b) => {
+    if(a.allDay && !b.allDay) return -1;
+    if(!a.allDay && b.allDay) return 1;
+    return (a.time||'').localeCompare(b.time||'');
+  });
+}
+
+function renderAgenda(){
+  const today = new Date();
+  const label = sameDay(selectedDate, today) ? 'Today' :
+    selectedDate.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
+  document.getElementById('agendaLabel').textContent = label;
+
+  const list = eventsForDate(selectedDate).filter(e => !hiddenPeople.has(e.personId));
+  const container = document.getElementById('agendaList');
+  if(list.length === 0){
+    container.innerHTML = '<div class="empty">Nothing on the board for this day.</div>';
+    return;
+  }
+  container.innerHTML = list.map(e => {
+    const person = personById(e.personId);
+    const color = person ? cssVar(person.color) : cssVar('--p1');
+    const tint = person ? cssVar(tintFor(person.color)) : cssVar('--p1-t');
+    const timeStr = e.allDay ? 'All day' : formatTime(e.time);
+    return `
+      <div class="agenda-item">
+        <div class="agenda-time">${timeStr}</div>
+        <div class="agenda-main">
+          <div class="agenda-title">${escapeHtml(e.title)}</div>
+          <div class="agenda-meta">
+            <span class="agenda-tag" style="background:${tint}; color:${color};">${person ? person.name : 'Someone'}</span>
+            <span class="agenda-tag" style="background:var(--paper); color:var(--ink-soft);">${CATEGORY_LABEL[e.category] || 'General'}</span>
+            ${e.notes ? escapeHtml(e.notes) : ''}
+          </div>
+        </div>
+        <div class="agenda-actions">
+          <button onclick="editEvent('${e.id}')" aria-label="Edit">&#9998;</button>
+          <button onclick="deleteEvent('${e.id}')" aria-label="Delete">&#10005;</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function formatTime(t){
+  if(!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${pad(m)} ${ampm}`;
+}
+
+function escapeHtml(s){
+  const div = document.createElement('div');
+  div.textContent = s || '';
+  return div.innerHTML;
+}
+
+function openEventModal(prefillDate){
+  editingEventId = null;
+  document.getElementById('eventModalTitle').textContent = 'Add event';
+  document.getElementById('evTitle').value = '';
+  document.getElementById('evDate').value = dateKey(prefillDate || selectedDate);
+  document.getElementById('evTime').value = '09:00';
+  document.getElementById('evAllDay').checked = false;
+  document.getElementById('evTime').disabled = false;
+  document.getElementById('evCategory').value = 'general';
+  document.getElementById('evPerson').value = people[0] ? people[0].id : '';
+  document.getElementById('evNotes').value = '';
+  document.getElementById('eventOverlay').classList.add('show');
+}
+
+function editEvent(id){
+  const e = events.find(ev => ev.id === id);
+  if(!e) return;
+  editingEventId = id;
+  document.getElementById('eventModalTitle').textContent = 'Edit event';
+  document.getElementById('evTitle').value = e.title;
+  document.getElementById('evDate').value = e.date;
+  document.getElementById('evTime').value = e.time || '09:00';
+  document.getElementById('evAllDay').checked = !!e.allDay;
+  document.getElementById('evTime').disabled = !!e.allDay;
+  document.getElementById('evCategory').value = e.category || 'general';
+  document.getElementById('evPerson').value = e.personId;
+  document.getElementById('evNotes').value = e.notes || '';
+  document.getElementById('eventOverlay').classList.add('show');
+}
+
+function toggleAllDay(){
+  document.getElementById('evTime').disabled = document.getElementById('evAllDay').checked;
+}
+
+function closeEventModal(){
+  document.getElementById('eventOverlay').classList.remove('show');
+}
+
+function saveEvent(){
+  const title = document.getElementById('evTitle').value.trim();
+  const date = document.getElementById('evDate').value;
+  if(!title || !date){ alert('Add a title and a date.'); return; }
+  const allDay = document.getElementById('evAllDay').checked;
+  const data = {
+    title,
+    date,
+    time: allDay ? null : document.getElementById('evTime').value,
+    allDay,
+    category: document.getElementById('evCategory').value,
+    personId: document.getElementById('evPerson').value,
+    notes: document.getElementById('evNotes').value.trim()
+  };
+  const eventsRef = db.collection('families').doc(familyCode).collection('events');
+  if(editingEventId){
+    eventsRef.doc(editingEventId).update(data);
+  }else{
+    eventsRef.add(data);
+  }
+  closeEventModal();
+}
+
+function deleteEvent(id){
+  if(!confirm('Remove this event from the board?')) return;
+  db.collection('families').doc(familyCode).collection('events').doc(id).delete();
+}
+
+function openPeopleModal(){
+  const list = document.getElementById('peopleList');
+  list.innerHTML = people.map((p, i) => `
+    <div class="field">
+      <label>Person ${i+1}</label>
+      <input type="text" value="${escapeHtml(p.name)}" id="pname-${p.id}">
+      <div class="swatches" style="margin-top:8px;">
+        ${PALETTE.map(c => `<div class="swatch ${p.color===c?'sel':''}" style="background:${cssVar(c)}" onclick="selectSwatch('${p.id}','${c}')" id="swatch-${p.id}-${c}"></div>`).join('')}
+      </div>
+    </div>
+  `).join('') + `<button class="btn-ghost" onclick="addPerson()" style="margin-top:6px;">+ Add family member</button>`;
+  document.getElementById('peopleOverlay').classList.add('show');
+}
+
+function selectSwatch(personId, color){
+  const p = people.find(x => x.id === personId);
+  if(p) p.color = color;
+  document.querySelectorAll(`[id^="swatch-${personId}-"]`).forEach(el => el.classList.remove('sel'));
+  document.getElementById(`swatch-${personId}-${color}`).classList.add('sel');
+}
+
+function addPerson(){
+  const usedColors = people.map(p => p.color);
+  const nextColor = PALETTE.find(c => !usedColors.includes(c)) || PALETTE[0];
+  people.push({id: 'p' + Date.now(), name: 'New person', color: nextColor});
+  openPeopleModal();
+}
+
+function closePeopleModal(){
+  document.getElementById('peopleOverlay').classList.remove('show');
+}
+
+function savePeople(){
+  people.forEach(p => {
+    const input = document.getElementById(`pname-${p.id}`);
+    if(input) p.name = input.value.trim() || p.name;
+  });
+  db.collection('families').doc(familyCode).collection('meta').doc('people')
+    .set({list: people.map(p => ({id:p.id, name:p.name, color:p.color}))});
+  closePeopleModal();
+}
+
+function showShareLink(){
+  const url = new URL(window.location.href);
+  url.searchParams.set('family', familyCode);
+  document.getElementById('shareLinkInput').value = url.toString();
+  document.getElementById('shareOverlay').classList.add('show');
+}
+function closeShareModal(){
+  document.getElementById('shareOverlay').classList.remove('show');
+}
+function copyShareLink(){
+  const input = document.getElementById('shareLinkInput');
+  input.select();
+  document.execCommand('copy');
+}
+
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('click', (e) => { if(e.target === ov) ov.classList.remove('show'); });
+});
+
+function setupPWA(){
+  if('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+    navigator.serviceWorker.register('sw.js').catch((err) => {
+      console.warn('Service worker registration failed:', err);
+    });
+  }
+}
+setupPWA();
+
+init();
+</script>
+</body>
+</html>
