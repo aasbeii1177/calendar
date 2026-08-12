@@ -43,6 +43,7 @@
     color:var(--ink);
     font-family:'Inter',sans-serif;
     min-height:100vh;
+    overflow-x:hidden;
   }
   .wrap{max-width:1100px;margin:0 auto;padding:28px 20px 80px;}
   header{
@@ -100,12 +101,12 @@
     font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase;
     color:var(--ink-soft); text-align:center; padding:8px 0; letter-spacing:1px;
   }
-  .weeks{display:grid;}
-  .week-row{display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--line);}
+  .weeks{display:grid; min-width:0;}
+  .week-row{display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--line); min-width:0;}
   .week-row:last-child{border-bottom:none;}
   .day{
     min-height:104px; border-right:1px solid var(--line); padding:6px; position:relative;
-    cursor:pointer; transition:background .1s;
+    cursor:pointer; transition:background .1s; min-width:0; overflow:hidden;
   }
   .day:last-child{border-right:none;}
   .day:hover{background:rgba(0,0,0,0.025);}
@@ -119,10 +120,10 @@
     background:var(--today); color:#fff; border-radius:50%;
     width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center;
   }
-  .chips{display:flex; flex-direction:column; gap:3px;}
+  .chips{display:flex; flex-direction:column; gap:3px; min-width:0;}
   .chip{
     font-size:11px; padding:2px 6px 2px 8px; border-radius:4px; white-space:nowrap;
-    overflow:hidden; text-overflow:ellipsis; position:relative;
+    overflow:hidden; text-overflow:ellipsis; position:relative; min-width:0; max-width:100%;
   }
   .chip:before{
     content:''; position:absolute; left:2px; top:50%; transform:translateY(-50%) rotate(-8deg);
